@@ -1,0 +1,5 @@
+# Create and start containers
+docker compose up -d
+
+# Start server
+go run main.go ./env/dev/.env
