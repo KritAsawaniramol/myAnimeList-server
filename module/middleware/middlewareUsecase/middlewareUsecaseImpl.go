@@ -35,12 +35,12 @@ func (m *middlerwareUsecase) RefreshToken(cfg *config.Config, credentialID uint,
 		UserID: user.ID,
 	}).SignToken()
 
-	log.Println("Reload Token refreshToken: %s\n", refreshToken)
+	log.Printf("Reload Token refreshToken: %s\n", refreshToken)
 	refreshToken = jwtAuth.ReloadToken(cfg.Jwt.RefreshSecretKey, claims.ExpiresAt.Unix(), &jwtAuth.Claims{
 		UserID: user.ID,
 	})
 
-	log.Println("Reload Token refreshToken: %s\n", refreshToken)
+	log.Printf("Reload Token refreshToken: %s\n", refreshToken)
 
 	if err := m.middlewareRepository.UpdateOneUserCredential(credentialID, &entities.Credential{
 		UserID:       user.ID,
