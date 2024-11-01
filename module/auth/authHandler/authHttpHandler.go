@@ -12,7 +12,6 @@ import (
 	"github.com/kritAsawaniramol/myAnimeList-server/module/auth"
 	"github.com/kritAsawaniramol/myAnimeList-server/module/auth/authUsecase"
 	"github.com/kritAsawaniramol/myAnimeList-server/pkg/request"
-	"github.com/kritAsawaniramol/myAnimeList-server/util"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -57,18 +56,14 @@ func NewAuthHttpHandler(authUsecase authUsecase.AuthUsecase, cfg *config.Config)
 
 // GetOauth implements AuthHttpHandler.
 func (a *authHttpHandler) GetOauth(ctx *gin.Context) {
-
 	provider := ctx.Param("provider")
 	ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), "provider", provider))
-	url, err := gothic.GetAuthURL(ctx.Writer, ctx.Request)
+	_, err := gothic.GetAuthURL(ctx.Writer, ctx.Request)
 	if err != nil {
 		log.Printf("err: %s\n", err.Error())
 	}
-	fmt.Printf("url: %v\n", url)
 
-	if gothUser, err := gothic.CompleteUserAuth(ctx.Writer, ctx.Request); err == nil {
-		fmt.Printf("gothUser: %v\n", gothUser)
-
+	if _, err := gothic.CompleteUserAuth(ctx.Writer, ctx.Request); err == nil {
 		http.Redirect(ctx.Writer, ctx.Request, fmt.Sprintf("http://%s:%d/auth/%s/callback", a.cfg.App.Host, a.cfg.App.Port, provider), http.StatusFound)
 	} else {
 		gothic.BeginAuthHandler(ctx.Writer, ctx.Request)
@@ -91,8 +86,6 @@ func (a *authHttpHandler) GetOauthCallback(ctx *gin.Context) {
 		fmt.Fprintln(ctx.Writer, err)
 		return
 	}
-
-	util.PrintObjInJson(user)
 
 	loginWithOauth := &auth.LoginWithOauth{
 		Email:              user.Email,
