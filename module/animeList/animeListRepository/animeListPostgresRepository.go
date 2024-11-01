@@ -12,13 +12,13 @@ import (
 )
 
 type animeListPostgresRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 // DeleteOneAnimeList implements AnimeListRepository.
 func (a *animeListPostgresRepository) DeleteOneAnimeList(malID string, userID uint) error {
 	animeList := &entities.AnimeLists{MalID: malID, UserID: userID}
-	err := a.DB.Unscoped().Delete(&animeList).Error
+	err := a.db.Unscoped().Delete(&animeList).Error
 	fmt.Printf("animeList: %v\n", animeList)
 	if err != nil {
 		log.Printf("error: DeleteOneAnimeList: %s\n", err.Error())
@@ -32,7 +32,7 @@ func (a *animeListPostgresRepository) UpdateOneAnimeList(malID string, userID ui
 	condition := &entities.AnimeLists{}
 	condition.MalID = malID
 	condition.UserID = userID
-	if err := a.DB.Model(&condition).Where(&condition).Select("Status", "EpisodesCount", "Score").Updates(in).Error; err != nil {
+	if err := a.db.Model(&condition).Where(&condition).Select("Status", "EpisodesCount", "Score").Updates(in).Error; err != nil {
 		log.Printf("error: UpdateOneAnimeList: %s\n", err.Error())
 		return errors.New("error: update anime list failed")
 	}
@@ -42,7 +42,7 @@ func (a *animeListPostgresRepository) UpdateOneAnimeList(malID string, userID ui
 // GetAnimeListByUserID implements AnimeListRepository.
 func (a *animeListPostgresRepository) GetAnimeListByUserID(userID uint) ([]entities.AnimeLists, error) {
 	animeList := []entities.AnimeLists{}
-	if err := a.DB.Where(&entities.AnimeLists{UserID: userID}).Find(&animeList).Error; err != nil {
+	if err := a.db.Where(&entities.AnimeLists{UserID: userID}).Find(&animeList).Error; err != nil {
 		log.Printf("error: GetAnimeListByUserID: %s\n", err.Error())
 		return []entities.AnimeLists{}, errors.New("error: anime list not found")
 	}
@@ -52,7 +52,7 @@ func (a *animeListPostgresRepository) GetAnimeListByUserID(userID uint) ([]entit
 // GetOneAnimeList implements AnimeListRepository.
 func (a *animeListPostgresRepository) GetOneAnimeList(in *entities.AnimeLists) (*entities.AnimeLists, error) {
 	animeList := &entities.AnimeLists{}
-	if err := a.DB.Where(&in).First(&animeList).Error; err != nil {
+	if err := a.db.Where(&in).First(&animeList).Error; err != nil {
 		log.Printf("error: GetOneAnimeList: %s\n", err.Error())
 		return &entities.AnimeLists{}, errors.New("error: not found in anime list")
 	}
@@ -61,7 +61,7 @@ func (a *animeListPostgresRepository) GetOneAnimeList(in *entities.AnimeLists) (
 
 // InsertOneAnimeToAnimeList implements AnimeListRepository.
 func (a *animeListPostgresRepository) InsertOneAnimeToAnimeList(in *entities.AnimeLists) error {
-	if err := a.DB.Create(&in).Error; err != nil {
+	if err := a.db.Create(&in).Error; err != nil {
 		log.Printf("error: InsertOneAnimeToAnimeList: %s\n", err.Error())
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return errors.New("error: this anime is already in list")
@@ -73,5 +73,5 @@ func (a *animeListPostgresRepository) InsertOneAnimeToAnimeList(in *entities.Ani
 }
 
 func NewAnimeRepository(db *gorm.DB) AnimeListRepository {
-	return &animeListPostgresRepository{DB: db}
+	return &animeListPostgresRepository{db: db}
 }
